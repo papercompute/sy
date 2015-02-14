@@ -20,7 +20,7 @@ my %assoc = (
     '-' => 'left'
 );
 
-my $function = "((324,456+896,942.31:92.54)*1):-2";
+my $function = "-2*((324,456+896,942.31/92.54)*1)/-2*23.34+(-3*63453.223)";
 $function =~ s/[,]//g;
 #my $function = "3 + 4 * 2 / ( 1 - 5 ) ^ 2 ^ 3";
 my @tokens = split(/(\(|\)|\*|\+|\^|\/|\:|\-)/, $function);
@@ -42,18 +42,20 @@ my $prevt="";
 #}
 
 my $min=0;
+my $i=0;
 foreach(@tokens){
 if(length($_)>0){  
   my $ss=trim($_);
   if(length($ss)>0){
    print $ss,"\n";
-   if($ss eq '-' && @tokens2[-1]=~ /\+|\*|\:|\-/){
-    print "Boom::::@tokens2[-1]\n";
+   if($ss eq '-' && ((@tokens2[-1]=~ /\+|\*|\:|\/|\-|\(/) || ($i eq 0)) ){
+    #print "Boom::::@tokens2[-1]\n";
     $min=1;
    }
    else{
     if($min eq 1){$ss='-'.$ss;}
     push @tokens2,$ss;
+    $i++;
     $min=0;
    }
   } 
@@ -105,6 +107,17 @@ sub shunting_yard {
     while (@ops){push(@res,pop @ops);};
     @res;
 }
+
+sub test_count{
+  my $sr=@_;
+  $i=0;
+  # ((dsdfsf()ssd)sdfs)
+  foreach(@$sr){
+    if($_ eq '('){$i++;}
+    elsif($_ eq ')'){$i--;}  
+  }
+  $i;
+}
  
 sub calc
 {
@@ -114,7 +127,7 @@ sub calc
     my @stack;
     foreach(@rpn){
      my $token=$_;
-     print "$_ @stack\n";
+     print "$_ | @stack\n";
      if($token =~ /\d+/ )   {push @stack, $token}
      elsif ( $token eq '*' ){push @stack, ( (pop @stack) * (pop @stack)) }
      elsif ( $token eq '/' ){my $f=pop @stack;my $s=pop @stack; push @stack, ($s / $f); }
